@@ -508,31 +508,37 @@ namespace LMS.Controllers
             string uId = GenerateUId();
             if (role.Equals("Administrator"))
             {
-                Administrators user = new Administrators();
-                user.UId = uId;
-                user.FName = fName;
-                user.LName = lName;
-                user.Dob = DOB;
+                Administrators user = new Administrators
+                {
+                    UId = uId,
+                    FName = fName,
+                    LName = lName,
+                    Dob = DOB
+                };
                 db.Administrators.Add(user);
             }
             else if (role.Equals("Professor"))
             {
-                Professors user = new Professors();
-                user.UId = uId;
-                user.FName = fName;
-                user.LName = lName;
-                user.Dob = DOB;
-                user.Subject = SubjectAbbrev;
+                Professors user = new Professors
+                {
+                    UId = uId,
+                    FName = fName,
+                    LName = lName,
+                    Dob = DOB,
+                    Subject = SubjectAbbrev
+                };
                 db.Professors.Add(user);
             }
             else
             {
-                Students user = new Students();
-                user.UId = uId;
-                user.FName = fName;
-                user.LName = lName;
-                user.Dob = DOB;
-                user.Subject = SubjectAbbrev;
+                Students user = new Students
+                {
+                    UId = uId,
+                    FName = fName,
+                    LName = lName,
+                    Dob = DOB,
+                    Subject = SubjectAbbrev
+                };
                 db.Students.Add(user);
             }
             db.SaveChanges();
