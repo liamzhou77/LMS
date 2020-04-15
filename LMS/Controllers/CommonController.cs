@@ -84,8 +84,21 @@ namespace LMS.Controllers
         /// <returns>The JSON array</returns>
         public IActionResult GetCatalog()
         {
-
-            return Json(null);
+            var query = from d in db.Departments
+                        select new
+                        {
+                            subject = d.Subject,
+                            dname = d.Name,
+                            courses = (from c in db.Courses
+                                       where c.Subject == d.Subject
+                                       select new
+                                       {
+                                           number = c.Num,
+                                           cname = c.Name
+                                       })
+                                       .ToArray()
+                        };
+            return Json(query.ToArray());
         }
 
         /// <summary>
@@ -104,8 +117,23 @@ namespace LMS.Controllers
         /// <returns>The JSON array</returns>
         public IActionResult GetClassOfferings(string subject, int number)
         {
-
-            return Json(null);
+            var query = from c in db.Classes
+                        join co in db.Courses
+                        on c.CourseId equals co.CourseId
+                        join p in db.Professors
+                        on c.UId equals p.UId
+                        where co.Subject == subject && co.Num == number.ToString()
+                        select new
+                        {
+                            season = c.Season,
+                            year = c.Year,
+                            location = c.Loc,
+                            start = c.Start,
+                            end = c.End,
+                            fname = p.FName,
+                            lname = p.LName
+                        };
+            return Json(query.ToArray());
         }
 
         /// <summary>
@@ -122,8 +150,17 @@ namespace LMS.Controllers
         /// <returns>The assignment contents</returns>
         public IActionResult GetAssignmentContents(string subject, int num, string season, int year, string category, string asgname)
         {
-
-            return Content("");
+            var content = (from d in db.Departments
+                           join co in db.Courses on d.Subject equals co.Subject
+                           join c in db.Classes on co.CourseId equals c.CourseId
+                           join ac in db.AssignmentCat on c.ClassId equals ac.ClassId
+                           join a in db.Assignments on ac.CatId equals a.CatId
+                           where d.Subject == subject && co.Num == num.ToString()
+                           && c.Season == season && c.Year == year && ac.Name == category
+                           && a.Name == asgname
+                           select a.Contents)
+                           .First();
+            return Content(content);
         }
 
 
@@ -143,8 +180,18 @@ namespace LMS.Controllers
         /// <returns>The submission text</returns>
         public IActionResult GetSubmissionText(string subject, int num, string season, int year, string category, string asgname, string uid)
         {
-
-            return Content("");
+            var submissionText = (from d in db.Departments
+                                  join co in db.Courses on d.Subject equals co.Subject
+                                  join c in db.Classes on co.CourseId equals c.CourseId
+                                  join ac in db.AssignmentCat on c.ClassId equals ac.ClassId
+                                  join a in db.Assignments on ac.CatId equals a.CatId
+                                  join s in db.Submission on a.AssId equals s.AssId
+                                  where d.Subject == subject && co.Num == num.ToString()
+                                  && c.Season == season && c.Year == year && ac.Name == category
+                                  && a.Name == asgname && s.UId == uid
+                                  select s.Contents)
+                                  .First();
+            return Content(submissionText);
         }
 
 
@@ -166,7 +213,48 @@ namespace LMS.Controllers
         /// </returns>
         public IActionResult GetUser(string uid)
         {
-
+            var student = (from s in db.Students
+                           join d in db.Departments
+                           on s.Subject equals d.Subject
+                           where s.UId == uid
+                           select new
+                           {
+                               fname = s.FName,
+                               lname = s.LName,
+                               uid = s.UId,
+                               department = d.Name
+                           }).FirstOrDefault();
+            if (student != null)
+            {
+                return Json(student);
+            }
+            var professor = (from p in db.Professors
+                             join d in db.Departments
+                             on p.Subject equals d.Subject
+                             where p.UId == uid
+                             select new
+                             {
+                                 fname = p.FName,
+                                 lname = p.LName,
+                                 uid = p.UId,
+                                 department = d.Name
+                             }).FirstOrDefault();
+            if (professor != null)
+            {
+                return Json(professor);
+            }
+            var administrator = (from a in db.Administrators
+                                 where a.UId == uid
+                                 select new
+                                 {
+                                     fname = a.FName,
+                                     lname = a.LName,
+                                     uid = a.UId
+                                 }).FirstOrDefault();
+            if (administrator != null)
+            {
+                return Json(administrator);
+            }
             return Json(new { success = false });
         }
 
