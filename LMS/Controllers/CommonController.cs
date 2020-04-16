@@ -189,9 +189,9 @@ namespace LMS.Controllers
                                   where d.Subject == subject && co.Num == num.ToString()
                                   && c.Season == season && c.Year == year && ac.Name == category
                                   && a.Name == asgname && s.UId == uid
-                                  select s.Contents)
-                                  .First();
-            return Content(submissionText);
+                                  select s.Contents).FirstOrDefault();
+
+            return Content(submissionText == null ? "" : submissionText);
         }
 
 
